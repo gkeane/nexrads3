@@ -4,13 +4,14 @@ import sys, os
 import re
 import sys
 import astral
+import csv
 import pytz
 from datetime import datetime
 from datetime import date, timedelta
 
 
+
 LOCAL_PATH = './aws/'
-PATH=LOCAL_PATH+'/2012/05/13/KYUX/'
 
 radar=''
 year=''
@@ -25,34 +26,44 @@ radar=str(sys.argv[1])
 year=str(sys.argv[2])
 month=str(sys.argv[3])
 day=str(sys.argv[4])
+lat=0
+long=0
+elev=0
+
+with open('input/radar_sites.csv', 'rb') as f:
+    reader = csv.reader(f)
+    your_list = list(reader)
+
+for i in your_list:
+    if i[0]==radar:
+        lat=i[1]
+        long=i[2]
+        elev=i[3]
+if (lat==0 and long==0):
+    sys.exit("Radar Location not found")
 
 ymd=year+month+day
+filepath='/'+radar+'/'+year+'/'
 dt = date_object = datetime.strptime(ymd,'%Y%m%d')
 dt_path=dt.strftime('%Y')+'/'+dt.strftime('%m')+'/'+dt.strftime('%d')+'/'+radar+'/'
 dt_y=dt-timedelta(days=1)
 dt_path_y=dt_y.strftime('%Y')+'/'+dt_y.strftime('%m')+'/'+dt_y.strftime('%d')+'/'+radar+'/'
 dt_t=dt+timedelta(days=1)
 dt_path_t=dt_t.strftime('%Y')+'/'+dt_t.strftime('%m')+'/'+dt_t.strftime('%d')+'/'+radar+'/'
-if radar == 'KYUX':
-    loc=astral.Location( ('Yuma','Arizona',32.4953,-114.6558,53,'') )
-elif radar=='KTLX':
-    loc=astral.Location( ('Oklahoma City','Oklahoma',35.3331,-97.2275,338,'') )
-else:
-    sys.exit("Can't find radar site")
 
-PATH=LOCAL_PATH+dt_path
+loc=astral.Location( ('','',lat,long,elev,'') )
+
+PATH=LOCAL_PATH+filepath
 if not os.path.exists(PATH):
     os.makedirs(PATH)
 conn = boto.s3.connect_to_region('us-east-2')
 conn = boto.connect_s3(anon=True)
 bucket = conn.get_bucket('noaa-nexrad-level2')
 get_files=[]
-print(loc.dawn(dt,local=False))
-dawn=loc.dawn(dt,local=False)
+dawn=loc.sunrise(dt,local=False)
 sunrise=dawn.strftime('%Y%m%d%H%M%S')
 print sunrise
-print(loc.dusk(dt,local=False))
-dusk=loc.dusk(dt,local=False)
+dusk=dawn+timedelta(hours=3)
 sunset=dusk.strftime('%Y%m%d%H%M%S')
 print sunset
 folderlist=[]
@@ -73,7 +84,7 @@ for folderl in folderlist:
             month=folder.name[24:26]
             day=folder.name[26:28]
             time=folder.name[29:35]
-            print folder.name[16:42]
+            #print folder.name[16:42]
             date_str = folder.name[20:35]
             date_str = re.sub('_', '', date_str)
             #print folder.key
