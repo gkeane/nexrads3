@@ -48,10 +48,10 @@ def get_s3_files(radar,year,month,day):
     bucket = conn.get_bucket('noaa-nexrad-level2')
     get_files=[]
     dawn=loc.sunset(dt,local=False)
-    sunrise=dawn.strftime('%Y%m%d%H%M%S')
+    start=dawn.strftime('%Y%m%d%H%M%S')
     print("Start Time: "+sunrise)
     dusk=dawn+timedelta(hours=4)
-    sunset=dusk.strftime('%Y%m%d%H%M%S')
+    end=dusk.strftime('%Y%m%d%H%M%S')
     print("End Time: "+sunset)
     folderlist=[]
     #print(dt_path)
@@ -75,7 +75,7 @@ def get_s3_files(radar,year,month,day):
                 date_str = folder.name[20:35]
                 date_str = re.sub('_', '', date_str)
                 #print folder.key
-                if (date_str>sunrise and date_str<sunset):
+                if (date_str>start and date_str<end):
                     #print "match"
                     get_files.append(folder.key)
 
