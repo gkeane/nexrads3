@@ -47,10 +47,10 @@ def get_s3_files(radar,year,month,day):
     conn = boto.connect_s3(anon=True)
     bucket = conn.get_bucket('noaa-nexrad-level2')
     get_files=[]
-    dawn=loc.sunrise(dt,local=False)
+    dawn=loc.sunset(dt,local=False)
     sunrise=dawn.strftime('%Y%m%d%H%M%S')
     print("Start Time: "+sunrise)
-    dusk=dawn+timedelta(hours=3)
+    dusk=dawn+timedelta(hours=4)
     sunset=dusk.strftime('%Y%m%d%H%M%S')
     print("End Time: "+sunset)
     folderlist=[]
