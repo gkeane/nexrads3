@@ -1,3 +1,4 @@
+import dateutil.parser as parser
 import boto
 import boto.s3
 import sys, os
@@ -6,6 +7,7 @@ import sys
 import astral
 import csv
 import pytz
+import argparse
 from datetime import datetime
 from datetime import date, timedelta
 
@@ -14,7 +16,7 @@ from datetime import date, timedelta
 LOCAL_PATH = './aws/'
 
 def get_s3_files(radar,year,month,day):
-    with open('input/radar_sites.csv', 'rb') as f:
+    with open('input/radar_sites.csv', 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
 
@@ -24,10 +26,11 @@ def get_s3_files(radar,year,month,day):
             long=i[2]
             elev=i[3]
     if (lat==0 and long==0):
-        sys.exit("Radar Location not found")
+        print("Radar Location not found in input")
+        return False
 
     ymd=year+month+day
-    filepath='/'+radar+'/'+year+'/'
+    filepath = '/'+radar+'/'+year+'/'
     dt = date_object = datetime.strptime(ymd,'%Y%m%d')
     dt_path=dt.strftime('%Y')+'/'+dt.strftime('%m')+'/'+dt.strftime('%d')+'/'+radar+'/'
     dt_y=dt-timedelta(days=1)
@@ -46,14 +49,14 @@ def get_s3_files(radar,year,month,day):
     get_files=[]
     dawn=loc.sunrise(dt,local=False)
     sunrise=dawn.strftime('%Y%m%d%H%M%S')
-    print(sunrise)
+    print("starttime"+sunrise)
     dusk=dawn+timedelta(hours=3)
     sunset=dusk.strftime('%Y%m%d%H%M%S')
-    print(sunset)
+    print("endtime"+sunset)
     folderlist=[]
-    print(dt_path)
-    print(dt_path_y)
-    print(dt_path_t)
+    #print(dt_path)
+    #print(dt_path_y)
+    #print(dt_path_t)
     folders = bucket.list(dt_path,"/")
     folders_y = bucket.list(dt_path_y,"/")
     folders_t= bucket.list(dt_path_t,"/")
@@ -80,7 +83,7 @@ def get_s3_files(radar,year,month,day):
         keyl=bucket.get_key(l)
         keyString = keyl.name[16:42]
         if not os.path.exists(PATH+keyString):
-            print("getting"+keyl.key)
+            print("Downloading: "+keyl.key)
             keyl.get_contents_to_filename(PATH+keyString)
 
 
@@ -94,14 +97,28 @@ if __name__ == '__main__':
     day=''
     total = len(sys.argv)
     cmdargs = str(sys.argv)
-    print ("The total numbers of args passed to the script: %d " % total)
-    print ("Args list: %s " % cmdargs)
+    #print("The total numbers of args passed to the script: %d " % total)
+    #print("Args list: %s " % cmdargs)
     # Pharsing args one by one
-    radar=str(sys.argv[1])
-    year=str(sys.argv[2])
-    month=str(sys.argv[3])
-    day=str(sys.argv[4])
-    lat=0
-    long=0
-    elev=0
+    aparser = argparse.ArgumentParser()
+    aparser.add_argument('radar_site',type=str, help='4 char radar site')
+    aparser.add_argument('year',type=str, help='4 char year')
+    aparser.add_argument('month', type=str,help='2 char zero padded month ex: 02')
+    aparser.add_argument('day', type=str,help='2 char zero padded day ex:09')
+    args = aparser.parse_args()
+    radar = args.radar_site
+    if (len(radar)<4):
+        sys.exit("radar value too short")
+    year = args.year
+    if (len(year)<4):
+        sys.exit("year value too short")
+    month = args.month
+    if (len(month)<2):
+        sys.exit("month value too short (zero padded?)")
+    day = args.day
+    if (len(day)<2):
+        sys.exit("day value too short (zero padded?)")
+    lat = 0
+    long = 0
+    elev = 0
     get_s3_files(radar,year,month,day)
