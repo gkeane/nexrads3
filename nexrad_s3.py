@@ -49,10 +49,10 @@ def get_s3_files(radar,year,month,day):
     get_files=[]
     dawn=loc.sunset(dt,local=False)
     start=dawn.strftime('%Y%m%d%H%M%S')
-    print("Start Time: "+start)
+    print("Start Time: "+str(dawn))
     dusk=dawn+timedelta(hours=4)
     end=dusk.strftime('%Y%m%d%H%M%S')
-    print("End Time: "+end)
+    print("End Time: "+str(dusk))
     folderlist=[]
     #print(dt_path)
     #print(dt_path_y)
