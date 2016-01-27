@@ -3,12 +3,14 @@ import boto
 import boto.s3
 import sys, os
 import re
+import sunset
 import sys
 import astral
 import csv
 import pytz
 import argparse
 from datetime import datetime
+from astral import Astral
 from datetime import date, timedelta
 
 
@@ -37,9 +39,12 @@ def get_s3_files(radar,year,month,day):
     dt_path_y=dt_y.strftime('%Y')+'/'+dt_y.strftime('%m')+'/'+dt_y.strftime('%d')+'/'+radar+'/'
     dt_t=dt+timedelta(days=1)
     dt_path_t=dt_t.strftime('%Y')+'/'+dt_t.strftime('%m')+'/'+dt_t.strftime('%d')+'/'+radar+'/'
-
-    loc=astral.Location( ('','',lat,long,elev,'') )
-
+    ast = Astral()
+    loc=astral.Location( ('','',lat,long,elev,'EST') )
+    timezone = loc.timezone
+    #print('Timezone: %s' % timezone)
+    #sun2=ast.dawn_utc(dt,lat,long)
+    #print(sun2)
     PATH=LOCAL_PATH+filepath
     if not os.path.exists(PATH):
         os.makedirs(PATH)
@@ -47,12 +52,14 @@ def get_s3_files(radar,year,month,day):
     conn = boto.connect_s3(anon=True)
     bucket = conn.get_bucket('noaa-nexrad-level2')
     get_files=[]
-    dawn=loc.sunset(dt,local=False)
-    start=dawn.strftime('%Y%m%d%H%M%S')
-    print("Start Time: "+str(dawn))
-    dusk=dawn+timedelta(hours=4)
-    end=dusk.strftime('%Y%m%d%H%M%S')
-    print("End Time: "+str(dusk))
+
+    sunsets=sunset.sunset(lat,long,dt)
+    #print(sunsets.utcoffset())
+    start=sunsets.strftime('%Y%m%d%H%M%S')
+    print("Start Time: "+str(sunsets))
+    sunset2=sunsets+timedelta(hours=4)
+    end=sunset2.strftime('%Y%m%d%H%M%S')
+    print("End Time: "+str(sunset2))
     folderlist=[]
     #print(dt_path)
     #print(dt_path_y)
