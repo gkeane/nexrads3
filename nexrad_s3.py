@@ -17,7 +17,7 @@ from datetime import date, timedelta
 
 LOCAL_PATH = './aws/'
 
-def get_s3_files(radar,year,month,day):
+def get_s3_files(radar,year,month,day,sstray,estray):
     with open('input/radar_sites.csv', 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
@@ -55,9 +55,15 @@ def get_s3_files(radar,year,month,day):
 
     sunsets=sunset.sunset(lat,long,dt)
     #print(sunsets.utcoffset())
-    start=sunsets.strftime('%Y%m%d%H%M%S')
-    print("Start Time: "+str(sunsets))
-    sunset2=sunsets+timedelta(hours=4)
+    star=sunsets.strftime('%Y%m%d%H%M%S')
+    interval_type = 'hours'
+    delta=timedelta(**{interval_type: sstray})
+    delta2=timedelta(**{interval_type: estray})
+    #print("delta2"+(str(delta2)))
+    start_dt=sunsets+delta
+    start=start_dt.strftime('%Y%m%d%H%M%S')
+    print("Start Time: "+str(start_dt))
+    sunset2=sunsets+delta2
     end=sunset2.strftime('%Y%m%d%H%M%S')
     print("End Time: "+str(sunset2))
     folderlist=[]
@@ -112,8 +118,12 @@ if __name__ == '__main__':
     aparser.add_argument('year',type=str, help='4 char year')
     aparser.add_argument('month', type=str,help='2 char zero padded month ex: 02')
     aparser.add_argument('day', type=str,help='2 char zero padded day ex:09')
+    aparser.add_argument('-s','--sstray', type=int,default=0,help='start stray from sunset negative for before')
+    aparser.add_argument('-e','--estray', type=int,default=4,help='end stray from sunset')
     args = aparser.parse_args()
     radar = args.radar_site
+    sstray = args.sstray
+    estray = args.estray
     if (len(radar)<4):
         sys.exit("radar value too short")
     year = args.year
@@ -128,4 +138,4 @@ if __name__ == '__main__':
     lat = 0
     long = 0
     elev = 0
-    get_s3_files(radar,year,month,day)
+    get_s3_files(radar,year,month,day,sstray,estray)

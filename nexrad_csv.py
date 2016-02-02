@@ -5,8 +5,12 @@ import datetime
 import nexrad_s3
 aparser = argparse.ArgumentParser()
 aparser.add_argument('infile', help='File to parse and load')
+aparser.add_argument('-s','--sstray', type=int,default=0,help='start stray from sunset negative for before')
+aparser.add_argument('-e','--estray', type=int,default=4,help='end stray from sunset')
 args = aparser.parse_args()
 infile=args.infile
+sstray = args.sstray
+estray = args.estray
 with open(infile, 'r') as f:
     reader = csv.reader(f)
     next(reader)
