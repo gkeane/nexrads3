@@ -15,7 +15,7 @@ from datetime import date, timedelta
 
 LOCAL_PATH = './aws/'
 
-def get_s3_files(radar,year,month,day):
+def get_s3_files(radar,year,month,day,sstray,estray):
     with open('input/radar_sites.csv', 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
@@ -48,9 +48,10 @@ def get_s3_files(radar,year,month,day):
     bucket = conn.get_bucket('noaa-nexrad-level2')
     get_files=[]
     dawn=loc.sunset(dt,local=False)
-    start=dawn.strftime('%Y%m%d%H%M%S')
+    star=dawn.strftime('%Y%m%d%H%M%S')
+    start=star+timedelta(hours=sstray)
     print("Start Time: "+start)
-    dusk=dawn+timedelta(hours=4)
+    dusk=dawn+timedelta(hours=estray)
     end=dusk.strftime('%Y%m%d%H%M%S')
     print("End Time: "+end)
     folderlist=[]
@@ -105,8 +106,12 @@ if __name__ == '__main__':
     aparser.add_argument('year',type=str, help='4 char year')
     aparser.add_argument('month', type=str,help='2 char zero padded month ex: 02')
     aparser.add_argument('day', type=str,help='2 char zero padded day ex:09')
+    aparser.add_argument('sstray', type=int,default=0,help=' begin stray from sunset(negative for before)')
+    aparser.add_argument('estray', type=int,default=4,help='end stray from sunset')
     args = aparser.parse_args()
     radar = args.radar_site
+    sstray=args.sstray
+    estray=args.estray
     if (len(radar)<4):
         sys.exit("radar value too short")
     year = args.year
@@ -121,4 +126,4 @@ if __name__ == '__main__':
     lat = 0
     long = 0
     elev = 0
-    get_s3_files(radar,year,month,day)
+    get_s3_files(radar,year,month,day,sstray,estray)
