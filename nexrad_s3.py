@@ -3,19 +3,21 @@ import boto
 import boto.s3
 import sys, os
 import re
+import sunset
 import sys
 import astral
 import csv
 import pytz
 import argparse
 from datetime import datetime
+from astral import Astral
 from datetime import date, timedelta
 
 
 
 LOCAL_PATH = './aws/'
 
-def get_s3_files(radar,year,month,day,sstray,estray):
+def get_s3_files(radar,year,month,day):
     with open('input/radar_sites.csv', 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
@@ -37,9 +39,12 @@ def get_s3_files(radar,year,month,day,sstray,estray):
     dt_path_y=dt_y.strftime('%Y')+'/'+dt_y.strftime('%m')+'/'+dt_y.strftime('%d')+'/'+radar+'/'
     dt_t=dt+timedelta(days=1)
     dt_path_t=dt_t.strftime('%Y')+'/'+dt_t.strftime('%m')+'/'+dt_t.strftime('%d')+'/'+radar+'/'
-
-    loc=astral.Location( ('','',lat,long,elev,'') )
-
+    ast = Astral()
+    loc=astral.Location( ('','',lat,long,elev,'EST') )
+    timezone = loc.timezone
+    #print('Timezone: %s' % timezone)
+    #sun2=ast.dawn_utc(dt,lat,long)
+    #print(sun2)
     PATH=LOCAL_PATH+filepath
     if not os.path.exists(PATH):
         os.makedirs(PATH)
@@ -47,13 +52,14 @@ def get_s3_files(radar,year,month,day,sstray,estray):
     conn = boto.connect_s3(anon=True)
     bucket = conn.get_bucket('noaa-nexrad-level2')
     get_files=[]
-    dawn=loc.sunset(dt,local=False)
-    star=dawn.strftime('%Y%m%d%H%M%S')
-    start=star+timedelta(hours=sstray)
-    print("Start Time: "+start)
-    dusk=dawn+timedelta(hours=estray)
-    end=dusk.strftime('%Y%m%d%H%M%S')
-    print("End Time: "+end)
+
+    sunsets=sunset.sunset(lat,long,dt)
+    #print(sunsets.utcoffset())
+    start=sunsets.strftime('%Y%m%d%H%M%S')
+    print("Start Time: "+str(sunsets))
+    sunset2=sunsets+timedelta(hours=4)
+    end=sunset2.strftime('%Y%m%d%H%M%S')
+    print("End Time: "+str(sunset2))
     folderlist=[]
     #print(dt_path)
     #print(dt_path_y)
@@ -106,12 +112,8 @@ if __name__ == '__main__':
     aparser.add_argument('year',type=str, help='4 char year')
     aparser.add_argument('month', type=str,help='2 char zero padded month ex: 02')
     aparser.add_argument('day', type=str,help='2 char zero padded day ex:09')
-    aparser.add_argument('sstray', type=int,default=0,help=' begin stray from sunset(negative for before)')
-    aparser.add_argument('estray', type=int,default=4,help='end stray from sunset')
     args = aparser.parse_args()
     radar = args.radar_site
-    sstray=args.sstray
-    estray=args.estray
     if (len(radar)<4):
         sys.exit("radar value too short")
     year = args.year
@@ -126,4 +128,4 @@ if __name__ == '__main__':
     lat = 0
     long = 0
     elev = 0
-    get_s3_files(radar,year,month,day,sstray,estray)
+    get_s3_files(radar,year,month,day)
