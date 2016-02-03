@@ -17,7 +17,7 @@ from datetime import date, timedelta
 
 LOCAL_PATH = './aws/'
 
-def get_s3_files(radar,year,month,day,sstray,estray):
+def get_s3_files(radar,year,month,day,sstray,estray,sunrise):
     with open('input/radar_sites.csv', 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
@@ -52,8 +52,10 @@ def get_s3_files(radar,year,month,day,sstray,estray):
     conn = boto.connect_s3(anon=True)
     bucket = conn.get_bucket('noaa-nexrad-level2')
     get_files=[]
-
-    sunsets=sunset.sunset(lat,long,dt)
+    if sunrise:
+        sunsets=sunset.sunrise(lat,long,dt)
+    else:
+        sunsets=sunset.sunset(lat,long,dt)
     #print(sunsets.utcoffset())
     star=sunsets.strftime('%Y%m%d%H%M%S')
     interval_type = 'hours'
@@ -118,12 +120,16 @@ if __name__ == '__main__':
     aparser.add_argument('year',type=str, help='4 char year')
     aparser.add_argument('month', type=str,help='2 char zero padded month ex: 02')
     aparser.add_argument('day', type=str,help='2 char zero padded day ex:09')
-    aparser.add_argument('-s','--sstray', type=int,default=0,help='start stray from sunset negative for before')
-    aparser.add_argument('-e','--estray', type=int,default=4,help='end stray from sunset')
+    aparser.add_argument('-s','--sstray', type=int,default=0,help='start stray from sunset(or sunrise) negative for before')
+    aparser.add_argument('-e','--estray', type=int,default=4,help='end stray from sunset (or sunrise)')
+    aparser.add_argument('--sunrise', dest='sunrise', action='store_true', help='enable calculations based on sunrise')
+    aparser.set_defaults(sunrise=False)
     args = aparser.parse_args()
     radar = args.radar_site
     sstray = args.sstray
     estray = args.estray
+    sunrise = args.sunrise
+    #print(sunrise)
     if (len(radar)<4):
         sys.exit("radar value too short")
     year = args.year
@@ -138,4 +144,4 @@ if __name__ == '__main__':
     lat = 0
     long = 0
     elev = 0
-    get_s3_files(radar,year,month,day,sstray,estray)
+    get_s3_files(radar,year,month,day,sstray,estray,sunrise)
