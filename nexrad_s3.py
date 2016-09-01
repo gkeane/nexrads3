@@ -17,7 +17,7 @@ from datetime import date, timedelta
 
 LOCAL_PATH = './aws/'
 
-def get_s3_files(radar,year,month,day,sstray,estray):
+def get_s3_files(radar,year,month,day,sstray=0,estray=4):
     with open('input/radar_sites.csv', 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
