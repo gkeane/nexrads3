@@ -7,10 +7,13 @@ aparser = argparse.ArgumentParser()
 aparser.add_argument('infile', help='File to parse and load')
 aparser.add_argument('-s','--sstray', type=int,default=0,help='start stray from sunset negative for before')
 aparser.add_argument('-e','--estray', type=int,default=4,help='end stray from sunset')
+aparser.add_argument('--sunrise', dest='sunrise', action='store_true', help='enable calculations based on sunrise')
+aparser.set_defaults(sunrise=False)
 args = aparser.parse_args()
 infile=args.infile
 sstray = args.sstray
 estray = args.estray
+sunrise=args.sunrise
 with open(infile, 'r') as f:
     reader = csv.reader(f)
     next(reader)
@@ -23,4 +26,4 @@ with open(infile, 'r') as f:
             m=(date.strftime('%m'))
             d=(date.strftime('%d'))
             print('Loading '+radar+ ' '+str(date))
-            nexrad_s3.get_s3_files(radar,y,m,d)
+            nexrad_s3.get_s3_files(radar,y,m,d,sstray,estray,sunrise)
