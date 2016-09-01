@@ -17,7 +17,7 @@ from datetime import date, timedelta
 
 LOCAL_PATH = './aws/'
 
-def get_s3_files(radar,year,month,day,sstray=0,estray=0,sunrise=False):
+def get_s3_files(radar,year,month,day,sstray=0,estray=4,sunrise=False):
     with open('input/radar_sites.csv', 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
@@ -53,6 +53,7 @@ def get_s3_files(radar,year,month,day,sstray=0,estray=0,sunrise=False):
     bucket = conn.get_bucket('noaa-nexrad-level2')
     get_files=[]
     if sunrise:
+        print "sunrise"
         sunsets=sunset.sunrise(lat,long,dt)
     else:
         sunsets=sunset.sunset(lat,long,dt)
