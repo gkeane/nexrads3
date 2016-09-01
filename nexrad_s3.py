@@ -21,7 +21,8 @@ def get_s3_files(radar,year,month,day,sstray=0,estray=4,sunrise=False):
     with open('input/radar_sites.csv', 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
-
+    lat=0
+    long=0
     for i in your_list:
         if i[0]==radar:
             lat=i[1]
