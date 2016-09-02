@@ -9,7 +9,6 @@ import time
 from quicklock import singleton
 
 singleton('awsdb')
-time.sleep(20)
 try:
     cnx = mysql.connector.connect(user=config.user, database=config.database,password=config.password)
     cursor = cnx.cursor()
