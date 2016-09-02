@@ -17,8 +17,8 @@ from datetime import date, timedelta
 
 LOCAL_PATH = './aws/'
 
-def get_s3_files(radar,year,month,day,sstray=0,estray=4,sunrise=False):
-    with open('input/radar_sites.csv', 'r') as f:
+def get_s3_files(radar,year,month,day,sstray=0,estray=4,sunrise=False,dir=LOCAL_PATH):
+    with open('./input/radar_sites.csv', 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
     lat=0
@@ -46,7 +46,7 @@ def get_s3_files(radar,year,month,day,sstray=0,estray=4,sunrise=False):
     #print('Timezone: %s' % timezone)
     #sun2=ast.dawn_utc(dt,lat,long)
     #print(sun2)
-    PATH=LOCAL_PATH+filepath
+    PATH=dir+filepath
     if not os.path.exists(PATH):
         os.makedirs(PATH)
     conn = boto.s3.connect_to_region('us-east-2')
