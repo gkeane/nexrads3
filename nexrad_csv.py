@@ -5,7 +5,7 @@ import datetime
 import nexrad_s3
 aparser = argparse.ArgumentParser()
 aparser.add_argument('infile', help='File to parse and load')
-aparser.add_argument('-s','--sstray', type=int,default=0,help='start stray from sunset negative for before')
+aparser.add_argument('-s','--sstray', type=int,default=-2,help='start stray from sunset negative for before')
 aparser.add_argument('-e','--estray', type=int,default=4,help='end stray from sunset')
 aparser.add_argument('--sunrise', dest='sunrise', action='store_true', help='enable calculations based on sunrise')
 aparser.set_defaults(sunrise=False)
