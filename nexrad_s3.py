@@ -81,13 +81,13 @@ def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL
     folderlist.append(folders)
     folderlist.append(folders_t)
     for folderl in folderlist:
-	print folderl;
+	#print folderl;
         for folder in folderl:
-	    print folder.name
+	    #print folder.name
             if (folder.name.find(".gz")>0 or folder.name.find("V06")>0):
-                print "inif"
+                #print "inif"
 		filename= folder.name
-		print filename;
+		#print filename;
                 year=folder.name[20:24]
                 month=folder.name[24:26]
                 day=folder.name[26:28]
