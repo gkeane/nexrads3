@@ -84,7 +84,7 @@ def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL
 	#print folderl;
         for folder in folderl:
 	    #print folder.name
-            if (folder.name.find(".gz")>0 or folder.name.find("V06")>0):
+            if (folder.name.find(".gz")>0 or folder.name.find("_V0")>0):
                 #print "inif"
 		filename= folder.name
 		#print filename;
