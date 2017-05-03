@@ -66,6 +66,12 @@ def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL
     #print("delta2"+(str(delta2)))
     start_dt=sunsets+delta
     start=start_dt.strftime('%Y%m%d%H%M%S')
+    equal = True
+    #print start_dt.day;
+    #print dt.day;
+    if (start_dt.day!=dt.day): #does start date happen tomorrow, if so download one from today
+        print "Start happens tomorrow!!!!!!"
+        equal = False
     print("Start Time: "+str(start_dt))
     sunset2=sunsets+delta2
     end=sunset2.strftime('%Y%m%d%H%M%S')
@@ -80,6 +86,16 @@ def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL
     folderlist.append(folders_y)
     folderlist.append(folders)
     folderlist.append(folders_t)
+    if (equal==False):                  #add last one from today to download
+        getapp_name = "00000"
+        getapp_key = min(folders).key
+        for folder in folders:
+            if (folder.name.find(".gz")>0 or folder.name.find("_V0")>0):
+                if (folder.name>getapp_name):
+                    #print folder.name
+                    getapp_name = folder.name
+                    getapp_key = folder.key
+        get_files.append(getapp_key)
     for folderl in folderlist:
 	#print folderl;
         for folder in folderl:
