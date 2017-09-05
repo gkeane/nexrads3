@@ -9,12 +9,16 @@ import astral
 import csv
 import pytz
 import argparse
+import plot_data
+import imageio
 from datetime import datetime
 from astral import Astral
 from datetime import date, timedelta
+from guppy import hpy;
 
 
 
+h=hpy()
 LOCAL_PATH = './aws/'
 
 def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL_PATH):
@@ -115,14 +119,33 @@ def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL
                 if (date_str>start and date_str<end):
                     #print "match"
                     get_files.append(folder.key)
+    with imageio.get_writer(PATH+'stream.gif', mode='I') as writer:
+        for l in get_files:
+            keyl=bucket.get_key(l)
+            keyString = keyl.name[16:42]
+            #print(keyString)
+            radar=keyl.name[16:20]
 
-    for l in get_files:
-        keyl=bucket.get_key(l)
-        keyString = keyl.name[16:42]
-        if not os.path.exists(PATH+keyString):
-            print("Downloading: "+keyl.key)
-            keyl.get_contents_to_filename(PATH+keyString)
-
+            year=keyl.name[20:24]
+            #print(year)
+            month=keyl.name[24:26]
+            day=keyl.name[26:28]
+            hms=keyl.name[29:35]
+            #print(hms)
+            if not os.path.exists(PATH+keyString):
+                print("Downloading: "+keyl.key)
+                src=PATH+keyString
+                dst=PATH+keyString+".png"
+                #print(src)
+                #print(dst)
+                keyl.get_contents_to_filename(PATH+keyString)
+                #print("down")
+                #print("y2"+year)
+                #print(h.heap())
+                out=plot_data.plot_data(src,dst,100,radar,year,month,day,hms)
+                #print(out)
+                image = imageio.imread(out)
+                writer.append_data(image)
 
 if __name__ == '__main__':
     # test1.py executed as script
