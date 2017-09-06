@@ -11,13 +11,25 @@ import pytz
 import argparse
 import plot_data
 import imageio
+#from multiprocessing.pool import ThreadPool as Pool
+from multiprocessing import Pool
+from joblib import Parallel, delayed
+
 from datetime import datetime
 from astral import Astral
 from datetime import date, timedelta
 from guppy import hpy;
 
+pool_size = 8  # your "parallelness"
+pool = Pool(pool_size)
+def plot(src):
+    try:
+        print(src)
+        plot_data.plot_data(src)
+        return src
 
-
+    except:
+        print('error with item')
 h=hpy()
 LOCAL_PATH = './aws/'
 
@@ -57,6 +69,7 @@ def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL
     conn = boto.connect_s3(anon=True)
     bucket = conn.get_bucket('noaa-nexrad-level2')
     get_files=[]
+    file_names=[]
     if sunrise:
         print "sunrise"
         sunsets=sunset.sunrise(lat,long,dt)
@@ -121,7 +134,9 @@ def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL
                     get_files.append(folder.key)
     with imageio.get_writer(PATH+'stream.gif', mode='I') as writer:
         for l in get_files:
+            #print(l)
             keyl=bucket.get_key(l)
+            #print(keyl.name)
             keyString = keyl.name[16:42]
             #print(keyString)
             radar=keyl.name[16:20]
@@ -142,11 +157,16 @@ def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL
                 #print("down")
                 #print("y2"+year)
                 #print(h.heap())
-                out=plot_data.plot_data(src,dst,100,radar,year,month,day,hms)
+                file_names.append(src)
+                #pool.map(plot, (src,))
+                #out=plot_data.plot_data(src,dst,100,radar,year,month,day,hms)
                 #print(out)
-                image = imageio.imread(out)
-                writer.append_data(image)
+                #image = imageio.imread(out)
+                #writer.append_data(image)
 
+        results = Parallel(n_jobs=4, verbose=1, backend="multiprocessing")(map(delayed(plot_data.plot_data), file_names))
+
+        #    imageio.imread
 if __name__ == '__main__':
     # test1.py executed as script
     # do something

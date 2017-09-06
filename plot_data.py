@@ -1,12 +1,12 @@
 import pyart
 import matplotlib.pyplot as plt
-def plot_data(infilename, outpng, maxrange,rdr,year,month,day,hms):
-  plt.close("all")
+def plot_data(infilename):
+  outpng=infilename+'.png'
   radar = pyart.io.read_nexrad_archive(infilename)
   display = pyart.graph.RadarDisplay(radar)
   fig = plt.figure(figsize=(10, 10))
-  title="Radar: "+rdr+" Year: "+year+" Month:"+month+" Day:"+day+" Time:"+hms+"UTC"
-  fig.suptitle(title, fontsize=14, fontweight='bold')
+  #title="Radar: "+rdr+" Year: "+year+" Month:"+month+" Day:"+day+" Time:"+hms+"UTC"
+  #fig.suptitle(title, fontsize=14, fontweight='bold')
   ax = fig.add_subplot(221)
   display.plot('velocity', 1, ax=ax, title='Doppler Velocity',
              colorbar_label='',
