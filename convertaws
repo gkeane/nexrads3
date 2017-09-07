@@ -1,0 +1,36 @@
+#!/bin/bash
+parallel --bibtex
+radar=$1
+year=$2
+month=$3
+day=$4
+echo $radar
+echo $year
+echo $month
+echo $day
+
+array=$(ls ./aws/$radar/$year/$month/$day)
+
+for i in $array
+do
+first=$(ls ./aws/$radar/$year/$month/$day/$i/ | sort -n | head -1)
+echo $first
+ if [ ${first: -2} == "gz" ]; then
+sem -j+0 ldm2netcdf -i ./aws/$radar/$year/$month/$day/$i -a -1 -s K$radar -p K -o ./netcdf/$radar/$year/$month/$day/$i  > convertaws.log ";"
+else
+sem -j+0 ldm2netcdf -i ./aws/$radar/$year/$month/$day/$i -a -1 -L -s K$radar -p K -o ./netcdf/$radar/$year/$month/$day/$i  > convertaws.log ";"
+fi
+echo started $i 
+done 
+# sem --wait waits until all jobs are done.
+sem --wait
+
+for i in $array
+do 
+mkdir -p ./curvedata/$radar/$year/$month/$day/
+rsync -r  ./netcdf/$radar/$year/$month/$day/$i/Reflectivity/00.50/ ./curvedata/$radar/$year/$month/$day/$name/ 
+gunzip -rf ./curvedata/$radar/$year/$month/$day/*
+done
+#
+#echo "Done converting files to netcdf. Press enter to continue"
+
