@@ -11,6 +11,7 @@ import pytz
 import argparse
 import plot_data
 import imageio
+import shutil
 #from multiprocessing.pool import ThreadPool as Pool
 from multiprocessing import Pool
 from joblib import Parallel, delayed
@@ -49,7 +50,7 @@ def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL
         return False
 
     ymd=year+month+day
-    filepath = '/'+radar+'/'+year+'/'
+    filepath = '/'+radar+'/'+year+'/'+month+'/'+day+'/'
     dt = date_object = datetime.strptime(ymd,'%Y%m%d')
     dt_path=dt.strftime('%Y')+'/'+dt.strftime('%m')+'/'+dt.strftime('%d')+'/'+radar+'/'
     dt_y=dt-timedelta(days=1)
@@ -132,7 +133,6 @@ def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL
                 if (date_str>start and date_str<end):
                     #print "match"
                     get_files.append(folder.key)
-    with imageio.get_writer(PATH+'stream.gif', mode='I') as writer:
         for l in get_files:
             #print(l)
             keyl=bucket.get_key(l)
@@ -164,8 +164,14 @@ def get_s3_files(radar,year,month,day,sstray=-2,estray=4,sunrise=False,dir=LOCAL
                 #image = imageio.imread(out)
                 #writer.append_data(image)
 
-        results = Parallel(n_jobs=4, verbose=1, backend="multiprocessing")(map(delayed(plot_data.plot_data), file_names))
-
+    results = Parallel(n_jobs=8, verbose=1, backend="multiprocessing")(map(delayed(plot_data.plot_data), file_names))
+    images = []
+    for result in results:
+        print result
+        images.append(imageio.imread(result))
+    imageio.mimsave(PATH+"./stream.gif", images)
+    shutil.copy2('./bsrc/phpslideshow.php',PATH+'/index.php')
+    shutil.copy2('./bsrc/template.html',PATH+'/template.html')
         #    imageio.imread
 if __name__ == '__main__':
     # test1.py executed as script
